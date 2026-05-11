@@ -8,8 +8,8 @@ class Settings(BaseSettings):
     # Database
     database_url: str
 
-    # Gemini
-    gemini_api_key: str
+    # Hugging Face
+    hf_api_key: str
 
     # ChromaDB
     chroma_db_path: str = "./storage/chroma_db"
@@ -20,8 +20,8 @@ class Settings(BaseSettings):
     top_k_results: int = 5
 
     # LLM Parameters
-    llm_model: str = "models/gemini-2.5-flash"
-    embedding_model: str = "models/gemini-embedding-2"
+    llm_model: str = "mistralai/Mistral-7B-Instruct-v0.2"
+    embedding_model: str = "sentence-transformers/all-MiniLM-L6-v2"
     temperature: float = 0.7
     max_tokens: int = 1000
 

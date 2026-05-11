@@ -1,10 +1,9 @@
 from functools import lru_cache
-from services.rag.embeddings import EmbeddingService
+from services.rag.embeddings_hf import HuggingFaceEmbeddingService
 from services.rag.vector_store import VectorStore
 from services.rag.chunking import DocumentChunker
 from services.rag.retrieval import Retriever
-from services.rag.pipeline import RAGPipeline
-from services.conversation.memory import ConversationMemory
+from services.rag.pipeline_hf import HuggingFaceRAGPipeline
 from services.conversation.query_rewriter import QueryRewriter
 from core.config import get_settings
 
@@ -12,10 +11,10 @@ settings = get_settings()
 
 
 @lru_cache()
-def get_embedding_service() -> EmbeddingService:
+def get_embedding_service() -> HuggingFaceEmbeddingService:
     """Get singleton embedding service."""
-    return EmbeddingService(
-        api_key=settings.gemini_api_key,
+    return HuggingFaceEmbeddingService(
+        api_key=settings.hf_api_key,
         model=settings.embedding_model
     )
 
@@ -47,27 +46,12 @@ def get_retriever() -> Retriever:
 
 
 @lru_cache()
-def get_rag_pipeline() -> RAGPipeline:
+def get_rag_pipeline() -> HuggingFaceRAGPipeline:
     """Get singleton RAG pipeline."""
-    return RAGPipeline(
+    return HuggingFaceRAGPipeline(
         retriever=get_retriever(),
-        api_key=settings.gemini_api_key,
+        api_key=settings.hf_api_key,
         model=settings.llm_model,
         temperature=settings.temperature,
         max_tokens=settings.max_tokens
-    )
-
-
-@lru_cache()
-def get_conversation_memory() -> ConversationMemory:
-    """Get singleton conversation memory."""
-    return ConversationMemory()
-
-
-@lru_cache()
-def get_query_rewriter() -> QueryRewriter:
-    """Get singleton query rewriter."""
-    return QueryRewriter(
-        api_key=settings.gemini_api_key,
-        model=settings.llm_model
     )

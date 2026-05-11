@@ -2,8 +2,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager
 
-from core.database import init_db
-from routers import chat, documents, health
+from routers import chat_simple, documents_simple, health
 
 
 @asynccontextmanager
@@ -11,9 +10,7 @@ async def lifespan(app: FastAPI):
     """Lifespan events for startup and shutdown."""
     # Startup
     print("Starting up...")
-    # Temporarily disabled to debug startup
-    # await init_db()
-    print("Startup complete.")
+    print("Startup complete - running without database")
 
     yield
 
@@ -22,9 +19,9 @@ async def lifespan(app: FastAPI):
 
 
 app = FastAPI(
-    title="RAG Chatbot API",
-    description="Advanced Conversational RAG System with Hybrid Search",
-    version="1.0.0",
+    title="RAG Chatbot API (Hugging Face - Free)",
+    description="RAG System with Free Hugging Face Models",
+    version="1.0.0-hf",
     lifespan=lifespan
 )
 
@@ -37,10 +34,10 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Include routers
+# Include routers (simplified versions without database)
 app.include_router(health.router)
-app.include_router(chat.router)
-app.include_router(documents.router)
+app.include_router(chat_simple.router)
+app.include_router(documents_simple.router)
 
 
 @app.get("/")
