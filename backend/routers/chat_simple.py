@@ -5,13 +5,14 @@ import json
 
 from core.dependencies import get_rag_pipeline
 from services.rag.pipeline_hf import HuggingFaceRAGPipeline
+from models.chat_simple import ChatRequest
 
 router = APIRouter(prefix="/api/v1", tags=["chat"])
 
 
 @router.post("/chat")
 async def chat_simple(
-    query: str,
+    request: ChatRequest,
     rag_pipeline: HuggingFaceRAGPipeline = Depends(get_rag_pipeline)
 ):
     """
@@ -23,9 +24,9 @@ async def chat_simple(
         try:
             # Generate response without conversation history
             async for chunk in rag_pipeline.generate_response(
-                query=query,
+                query=request.query,
                 conversation_history=[],
-                n_results=5
+                n_results=request.n_results or 5
             ):
                 yield f"data: {json.dumps(chunk)}\n\n"
         except Exception as e:

@@ -47,6 +47,9 @@ class HuggingFaceRAGPipeline:
         Yields:
             Response chunks
         """
+        documents = []
+        response_text = ""
+
         try:
             # Retrieve relevant documents
             documents = await self.retriever.retrieve(query, n_results)
@@ -57,29 +60,33 @@ class HuggingFaceRAGPipeline:
             # Create prompt
             prompt = self._create_prompt(query, context, conversation_history)
 
-            # Generate response with streaming
-            loop = asyncio.get_event_loop()
-
-            # Run streaming in executor
-            response_text = await loop.run_in_executor(
-                None,
-                lambda: self.client.text_generation(
-                    prompt,
-                    model=self.model,
-                    max_new_tokens=self.max_tokens,
-                    temperature=self.temperature,
-                    return_full_text=False
+            # Generate response - wrap in try/except to catch all errors
+            try:
+                loop = asyncio.get_event_loop()
+                response_text = await loop.run_in_executor(
+                    None,
+                    self._generate_text_sync,
+                    prompt
                 )
-            )
+            except Exception as e:
+                # Handle any error from HF API
+                error_msg = str(e)
+                print(f"Error calling HF API: {error_msg}")
+                yield {
+                    'error': f"Text generation failed: {error_msg}",
+                    'done': True
+                }
+                return  # Use return, not raise
 
             # Yield the response in chunks (simulate streaming)
-            words = response_text.split()
-            for i, word in enumerate(words):
-                yield {
-                    'token': word + (' ' if i < len(words) - 1 else ''),
-                    'done': False
-                }
-                await asyncio.sleep(0.01)  # Small delay for streaming effect
+            if response_text and isinstance(response_text, str):
+                words = response_text.split()
+                for i, word in enumerate(words):
+                    yield {
+                        'token': word + (' ' if i < len(words) - 1 else ''),
+                        'done': False
+                    }
+                    await asyncio.sleep(0.01)
 
             # Send final chunk with sources
             yield {
@@ -90,15 +97,35 @@ class HuggingFaceRAGPipeline:
                         'metadata': doc.get('metadata', {})
                     }
                     for doc in documents[:3]
-                ]
+                ] if documents else []
             }
 
         except Exception as e:
-            print(f"Error generating response: {e}")
+            print(f"Error in generate_response: {e}")
             yield {
                 'error': str(e),
                 'done': True
             }
+            return  # Use return, not raise
+
+    def _generate_text_sync(self, prompt: str) -> str:
+        """
+        Synchronous text generation wrapper.
+
+        This method runs in a thread pool executor.
+        """
+        try:
+            result = self.client.text_generation(
+                prompt,
+                model=self.model,
+                max_new_tokens=self.max_tokens,
+                temperature=self.temperature,
+                return_full_text=False
+            )
+            return result if result else ""
+        except Exception as e:
+            print(f"HF API error: {e}")
+            raise  # Re-raise to be caught by caller
 
     def _build_context(self, documents: List[Dict]) -> str:
         """Build context string from retrieved documents."""
