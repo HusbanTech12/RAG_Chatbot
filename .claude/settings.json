@@ -1,0 +1,48 @@
+{
+  "permissions": {
+    "bash": {
+      "allow": [
+        {
+          "pattern": "cd (backend|frontend)",
+          "description": "Navigate to backend or frontend directories"
+        },
+        {
+          "pattern": "npm (install|run dev|run build|run start|run lint|test)",
+          "description": "Common npm commands for frontend"
+        },
+        {
+          "pattern": "fastapi (dev|run) main.py",
+          "description": "Run FastAPI development or production server"
+        },
+        {
+          "pattern": "uv (sync|add|remove)",
+          "description": "UV package manager commands"
+        },
+        {
+          "pattern": "pytest.*",
+          "description": "Run Python tests"
+        },
+        {
+          "pattern": "git (status|log|diff|branch)",
+          "description": "Read-only git commands"
+        },
+        {
+          "pattern": "ls|find|grep|cat|head|tail",
+          "description": "Basic file system navigation and reading"
+        }
+      ]
+    }
+  },
+  "project": {
+    "name": "RAG Chatbot",
+    "type": "fullstack",
+    "languages": ["python", "typescript"],
+    "frameworks": ["fastapi", "nextjs", "react"],
+    "description": "A retrieval-augmented generation chatbot with FastAPI backend and Next.js frontend"
+  },
+  "agents": {
+    "default_model": "sonnet",
+    "agents_directory": ".claude/agents",
+    "skills_directory": ".claude/skills"
+  }
+}
